@@ -49,24 +49,27 @@ int main(int argc, char *argv[])
     cerr << "  (" << hostname << "," << port << ")" << endl;
     return -1;
   } //if
-  //receving from the server its id number
+  
+  //receving from the ringmaster its id number
   char buffer[512];
   recv(socket_fd,buffer,sizeof(buffer),0);
   //get the id number
   int idnum=atoi(buffer);
-
+  std::cout<<idnum<<std::endl;
   //receving the total number of player---why always be 0, the server part is normal why send ??????
   recv(socket_fd,buffer,sizeof(buffer),0);
   int total_player=atoi(buffer);
-  //std::cout<<"the total player is "<<total_player<< std::endl;
-  
-  //return the ready message to the ringmaster
+  std::cout<<"the total player is "<<total_player<< std::endl;
+  //return the ready message to the ringmaster and this time their server port has been open
   string message="player "+std::to_string(idnum)+" is ready to play";
   int length=message.length();
   send(socket_fd,message.c_str(),length,0);
 
   std::cout<<total_player<<std::endl;
 
+
+
+  
 //this is the port number itself open for its left neighbor to connecting on 
   /*---------------------------------------being as server-------------------------------------*/
  int connect_port;
@@ -117,17 +120,37 @@ int main(int argc, char *argv[])
     cerr << "  (" << hostname << "," << portserver << ")" << endl;
     return -1;
   } //if
-  
-  /* receive from the ringmaster again to make sure all the port has open */
+  std::cout<<"my port number "<<portserver<<"has open"<<std::endl;
+  //----------------------------------------------open its port as server--------------------------------//
+
+  //receving from the ringmaster to make sure that all the player has ready and open its port as its server
+ 
+ //receving the total number of player---why always be 0, the server part is normal why send ??????
   recv(socket_fd,buffer,sizeof(buffer),0);
-  int total_playernew=atoi(buffer);
-  std::cout<<"connected as player <" << idnum<< " > out of <" <<total_playernew<< " > total player" << std::endl;
+  total_player=atoi(buffer);
+  std::cout<<"connected as player <" << idnum<< " > out of <" <<total_player<< "total player" << std::endl;
+   
 
+
+
+  //its player's own portnumber for client to connect on 
+  cout << "Waiting for connection on port " << portserver << endl;
+  struct sockaddr_storage l_socket_addr;
+  socklen_t l_socket_addr_len = sizeof(l_socket_addr);
+  std::cout<<"I am the server and my port number is " << portserver<<std::endl; 
   
+  int l_connection_fd; 
+  l_connection_fd = accept(l_socket_fd, (struct sockaddr *)&l_socket_addr, &l_socket_addr_len);
+  if (l_connection_fd == -1) {
+    cerr << "Error: cannot accept connection on socket" << endl;
+    return -1;
+  } //if
+  char transfernew[1000];
+  recv(l_connection_fd,transfernew,sizeof(transfernew),0);
+  std::cout<<"player"<<transfernew<<" is sending me message"<<std::endl;
 
-
-/*-------------------being client for the right server ---------------------*/
-   //the right neighbor's port is (idnum+1)*2+35000 
+ /*-------------------being client for the right server ---------------------*/
+   //the right neighbor's port is (idnum+1)*2+35000 ????? why not execute here
   int right_port;
   if(idnum!=total_player-1){
    right_port=(idnum+1)*2+35000;
@@ -163,27 +186,6 @@ int main(int argc, char *argv[])
     return -1;
   } //if
   
-  //connect one to one, if the idnum is 0. it connect first then accept first, other id num accpet first then connect
-
- if(idnum!=0){
-//-----------------accpet----------------//
-  cout << "Waiting for connection on port " << portserver << endl;
-  struct sockaddr_storage l_socket_addr;
-  socklen_t l_socket_addr_len = sizeof(l_socket_addr);
-  std::cout<<"I am the server and my port number is " << portserver<<std::endl; 
-  
-  int l_connection_fd; 
-  l_connection_fd = accept(l_socket_fd, (struct sockaddr *)&l_socket_addr, &l_socket_addr_len);
-  if (l_connection_fd == -1) {
-    cerr << "Error: cannot accept connection on socket" << endl;
-    return -1;
-  } //if
-  char transfernew[1000];
-  recv(l_connection_fd,transfernew,sizeof(transfernew),0);
-  std::cout<<"player"<<transfernew<<" has sending me message"<<std::endl;
-
-}
-// Then connect
   cout << "Connecting to " << hostname << " on port " << rightport << "..." << endl;
   
   r_status = connect(r_socket_fd, right_info_list->ai_addr, right_info_list->ai_addrlen);
@@ -192,30 +194,11 @@ int main(int argc, char *argv[])
     cerr << "  (" << hostname << "," << rightport << ")" << endl;
     return -1;
   } //if
-  std::cout<<"I am connecting with my right server and my right server port number is " << right_port<<std::endl; 
-  /* testing */
-  char clientbuffer[1000];
-  string clientmessage=std::to_string(idnum);
-  int clientlength=clientmessage.length();
-  send(r_socket_fd,clientmessage.c_str(),clientlength,0);
-  std::cout<<"I am the client"<< idnum <<" i have send the message to"<< idnum+1 <<std::endl;
+std::cout<<"I am connecting with my right server and my right server port number is " << right_port<<std::endl; 
+char clientbuffer[1000];
+string clientmessage=std::to_string(idnum);
+int clientlength=clientmessage.length();
+send(socket_fd,clientmessage.c_str(),clientlength,0);
+std::cout<<"I have send the client  message"<<std::endl;
 
-if(idnum==0){
-//  accpet 
-  cout << "Waiting for connection on port " << portserver << endl;
-  struct sockaddr_storage l_socket_addr;
-  socklen_t l_socket_addr_len = sizeof(l_socket_addr);
-  std::cout<<"I am the server and my port number is " << portserver<<std::endl; 
-  
-  int l_connection_fd; 
-  l_connection_fd = accept(l_socket_fd, (struct sockaddr *)&l_socket_addr, &l_socket_addr_len);
-  if (l_connection_fd == -1) {
-    cerr << "Error: cannot accept connection on socket" << endl;
-    return -1;
-  } //if
-  char transfernew[1000];
-  recv(l_connection_fd,transfernew,sizeof(transfernew),0);
-  std::cout<<"player"<<transfernew<<" has sending me message"<<std::endl;
- }
-  
 }

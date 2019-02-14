@@ -10,7 +10,7 @@ using namespace std;
 
 int main(int argc, char *argv[]){
 	/*initialize*/
-	Potato Ringmaster(atoi(argv[3]),atoi(argv[2]));
+	Potato Ringmaster(atoi(argv[2]),atoi(argv[3]));
 	std::cout<<"Players = <"<<Ringmaster.getplayernum()<<">"<<std::endl;
 	std::cout<<"Hops = <"<<Ringmaster.gethopnum()<<">"<<std::endl;
 	//std::cout<<"Portnum = <"<<portnum<<">"<<std::endl;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
 	/* using socket to connect citing from the example */
 	memset(&host_info ,0, sizeof(host_info));
 
-	  host_info.ai_family   = AF_UNSPEC;
+	host_info.ai_family   = AF_UNSPEC;
     host_info.ai_socktype = SOCK_STREAM;
     host_info.ai_flags    = AI_PASSIVE;
  
@@ -91,30 +91,28 @@ int main(int argc, char *argv[]){
   char buffer[512];
   sprintf(buffer, "%d", i);
   send(player_fd[i],buffer,sizeof(buffer),0);
-  int totalnum=Ringmaster.getplayernum();
-  sprintf(buffer,"%d",totalnum);
-  send(player_fd[i],buffer,sizeof(buffer),0);
+  std::cout<<"I have send the it"<<std::endl;  
+
   //get the ready information from each player
   recv(player_fd[i],buffer,sizeof(buffer),0);
   std::cout<<buffer<<std::endl;  
   i++;
   }
-
-  //send the player's total number to make sure that they all open their port
+  
   int z=Ringmaster.getplayernum()-1;
   while(z>=0){
   //send the total player number to each player
-  int totalnew=Ringmaster.getplayernum();
+  int totalnum=Ringmaster.getplayernum();
   char buffer[512];
-  sprintf(buffer,"%d",totalnew);
+  sprintf(buffer,"%d",totalnum);
   send(player_fd[z],buffer,sizeof(buffer),0);
-  //std::cout<<"I have send the total number player to "<<z<<std::endl;
+  std::cout<<"I have send the total number player to "<<z<<std::endl;
   z--;
   }
-  
+
 
   int rnd=Ringmaster.getrand(3);
-  std::cout<<" Ready to start the game, sending potato to player "<< "<" << rnd << ">" <<std::endl ;
+  std::cout<<" Ready to start the game, sending potato to player "<< "<" << rnd << ">" ;
   
   freeaddrinfo(host_info_list);
   close(socket_fd);
