@@ -4,7 +4,8 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <assert.h>
-
+#include "potato.h"
+#include <algorithm>
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
   //get the id number
   int idnum=atoi(buffer);
 
-  //receving the total number of player---why always be 0, the server part is normal why send ??????
+  //receving the total number of player---sizeof problem
   recv(socket_fd,buffer,sizeof(buffer),0);
   int total_player=atoi(buffer);
   //std::cout<<"the total player is "<<total_player<< std::endl;
@@ -65,7 +66,7 @@ int main(int argc, char *argv[])
   int length=message.length();
   send(socket_fd,message.c_str(),length,0);
 
-  std::cout<<total_player<<std::endl;
+  //std::cout<<total_player<<std::endl;
 
 //this is the port number itself open for its left neighbor to connecting on 
   /*---------------------------------------being as server-------------------------------------*/
@@ -122,9 +123,22 @@ int main(int argc, char *argv[])
   recv(socket_fd,buffer,sizeof(buffer),0);
   int total_playernew=atoi(buffer);
   std::cout<<"connected as player <" << idnum<< " > out of <" <<total_playernew<< " > total player" << std::endl;
-
+ 
+//---------------just for testing need to be abstracted with listen to three port---------------//
+  /*
+  testing for receiving the potato (should only one player receive the first potato)
+  Potato start(0,0);
+  //receive the random first potato player
+  recv(socket_fd,buffer,sizeof(buffer),0);
+  //std::cout<<"the random buffer is"<<atoi(buffer)<<std::endl;
+  if(idnum==atoi(buffer)){
+  recv(socket_fd,&start,sizeof(&start),0);
+  std::cout<<"my id number is"<<idnum<<"and I receive the first potato"<<std::endl;
+  start.sethop(start.gethopnum()-1);
+  }
+  */
+  //testing for send back to the ringmaster the end of the potato (why the trace would be random number????)
   
-
 
 /*-------------------being client for the right server ---------------------*/
    //the right neighbor's port is (idnum+1)*2+35000 
@@ -200,6 +214,7 @@ int main(int argc, char *argv[])
   send(r_socket_fd,clientmessage.c_str(),clientlength,0);
   std::cout<<"I am the client"<< idnum <<" i have send the message to"<< idnum+1 <<std::endl;
 
+int l_connection_fd;
 if(idnum==0){
 //  accpet 
   cout << "Waiting for connection on port " << portserver << endl;
@@ -207,7 +222,6 @@ if(idnum==0){
   socklen_t l_socket_addr_len = sizeof(l_socket_addr);
   std::cout<<"I am the server and my port number is " << portserver<<std::endl; 
   
-  int l_connection_fd; 
   l_connection_fd = accept(l_socket_fd, (struct sockaddr *)&l_socket_addr, &l_socket_addr_len);
   if (l_connection_fd == -1) {
     cerr << "Error: cannot accept connection on socket" << endl;
@@ -217,5 +231,41 @@ if(idnum==0){
   recv(l_connection_fd,transfernew,sizeof(transfernew),0);
   std::cout<<"player"<<transfernew<<" has sending me message"<<std::endl;
  }
-  
+
+ //the frist receving player would send the potato all the player need to listen to two channel
+   fd_set master;
+   int fdmax;
+ while(1){
+    FD_ZERO(&master);
+    //with ringmaster
+    FD_SET(socket_fd, &master);
+    //accept left
+    FD_SET(l_connection_fd, &master);
+    //connect right server
+    FD_SET(r_socket_fd, &master);
+    fdmax = max(socket_fd, l_connection_fd);
+    fdmax = max(fdmax, r_socket_fd);
+    if(select(fdmax + 1, &master, NULL, NULL, NULL)==-1){
+      std::cout<<"select wrong"<<std::endl;
+      return 0;
+    }
+    Potato start(0,0);
+    //see which channel get the message
+    if(FD_ISSET(socket_fd, &master)){
+      std::cout<<"I have received potato from the ringmaster"<<std::endl;
+       recv(socket_fd,&start,sizeof(&start),0);
+       int hop=start.gethopnum()-1;
+       start.sethop(hop);
+       if(start.gethopnum()==0){
+        send(socket_fd,&start,sizeof(&start),0);
+        break;
+       } 
+    }
+    if(FD_ISSET(r_socket_fd, &master)){
+      
+    }
+    if(FD_ISSET(l_connection_fd, &master)){
+      
+    }
+  }
 }

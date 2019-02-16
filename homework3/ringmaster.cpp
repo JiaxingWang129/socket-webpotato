@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
   struct sockaddr_storage socket_addr;
   socklen_t socket_addr_len = sizeof(socket_addr);
   
-  //creating connection with each player (why we need to allocate in the heap using vector<int> can cause segment fault ???)
+  //creating connection with each player 
   vector<int> player_fd(Ringmaster.getplayernum(),0);
   int i=0;
   while(i<Ringmaster.getplayernum()){
@@ -112,10 +112,66 @@ int main(int argc, char *argv[]){
   z--;
   }
   
-
-  int rnd=Ringmaster.getrand(3);
-  std::cout<<" Ready to start the game, sending potato to player "<< "<" << rnd << ">" <<std::endl ;
+  //sending the potato and using select to listen to all the player
+  int rnd=Ringmaster.getrand(Ringmaster.getplayernum());
+  /*
+  int k=Ringmaster.getplayernum()-1;
+  //to see who receive the first potato
+  while(k>=0){
+  //send the randome first chosen potato number
+  char buffer[512];
+  sprintf(buffer,"%d",rnd);
+  send(player_fd[k],buffer,sizeof(buffer),0);
+  //std::cout<<"I have send the total number player to "<<z<<std::endl;
+  k--;
+  }
+  */
+  send(player_fd[0],&Ringmaster,sizeof(&Ringmaster),0);
+  std::cout<<" Ready to start the game, sending potato to player "<< "<" << rnd << ">" <<std::endl;
+  //record the first playerid
+  Ringmaster.traceid[0]=rnd;
+  ///for selecting when the potato would come back 
+  fd_set readfds;
+  FD_ZERO(&readfds);
   
+  while(1){
+  int maxfd=player_fd[0];
+  //put all the player into set
+  for(int j=0;j<Ringmaster.getplayernum();j++){
+    FD_SET(player_fd[j],&readfds);
+    //choose the max;
+    if(player_fd[j]>maxfd){
+      maxfd=player_fd[j];
+    }
+  }
+  //select
+  if(select(maxfd+1,&readfds,NULL,NULL,NULL)==-1){
+    std::cout<<"select error"<<std::endl;
+  }
+  //run through the existing connections looking for the last time potato to read
+  Potato result(0,0);
+  for(int j=0;j<Ringmaster.getplayernum();j++){
+    //we got a message from the player
+  if(FD_ISSET(player_fd[j],&readfds)){
+    recv(player_fd[j],&result,sizeof(&result),0);
+    std::cout<<result.getplayernum()<<std::endl;
+     }
+   }
+  //get the potato and judge whether the hop number is zero close all
+  if(result.gethopnum()==0){
+      const char *message = "game over";
+      for(int i = 0; i < Ringmaster.getplayernum(); i++){
+      send(player_fd[i],message, strlen(message), 0);
+      close(player_fd[i]);
+    }
+  }
+  //print the trace
+  std::cout<<"Trace of Potato:"<<std::endl;
+  for(int j=0;j<result.getplayernum();j++){
+      std::cout<<"<"<<result.traceid[j]<<"> ,";
+    }
+ break;
+} 
   freeaddrinfo(host_info_list);
   close(socket_fd);
 }

@@ -2,14 +2,19 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <iostream>
 class Potato{
 	private:
 		int hops;
 		int playernum;
-		std::vector<int> traceid;
 	public:
+		int traceid[512]={0};
+		//if we use char x[] we could transfer the structure together
 		Potato();
 		Potato(int a, int b):hops(a),playernum(b){}
+		void sethop(int num){
+			hops=num;
+		}
 		int gethopnum(){
 		  return hops;
 		}
@@ -21,4 +26,11 @@ class Potato{
 			int random=rand()%playernum;
 			return random;
 		}
+		/*
+		void printtrace(int playernum,char &trace[512]){
+			for(int j=0;j<playernum;j++){
+                std::cout<<"<"<<trace[j]<<"> ,";
+               }
+		}
+		*/
 };
