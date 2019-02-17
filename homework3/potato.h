@@ -7,11 +7,12 @@ class Potato{
 	private:
 		int hops;
 		int playernum;
+		bool sign;
 	public:
-		int traceid[512]={0};
+		int trace[512]={8};
 		//if we use char x[] we could transfer the structure together
 		Potato();
-		Potato(int a, int b):hops(a),playernum(b){}
+		Potato(int a, int b,bool c):hops(a),playernum(b),sign(c){}
 		void sethop(int num){
 			hops=num;
 		}
@@ -26,11 +27,10 @@ class Potato{
 			int random=rand()%playernum;
 			return random;
 		}
-		/*
-		void printtrace(int playernum,char &trace[512]){
-			for(int j=0;j<playernum;j++){
-                std::cout<<"<"<<trace[j]<<"> ,";
-               }
+		bool getsign(){
+			return sign;
 		}
-		*/
+		void setsign(bool num){
+			sign=num;
+		}
 };

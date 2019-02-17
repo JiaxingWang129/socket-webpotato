@@ -5,14 +5,18 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include<string>
 
 using namespace std;
 
 int main(int argc, char *argv[]){
 	/*initialize*/
-	Potato Ringmaster(atoi(argv[3]),atoi(argv[2]));
+	Potato Ringmaster(atoi(argv[3]),atoi(argv[2]),false);
+  Potato result(0,0,false);
+  int totalhop=Ringmaster.gethopnum();
+  std::cout<<"Potato Ringmaster"<<std::endl;
 	std::cout<<"Players = <"<<Ringmaster.getplayernum()<<">"<<std::endl;
-	std::cout<<"Hops = <"<<Ringmaster.gethopnum()<<">"<<std::endl;
+	std::cout<<"Hops = <"<<totalhop<<">"<<std::endl;
 	//std::cout<<"Portnum = <"<<portnum<<">"<<std::endl;
 	//int rnd=Ringmaster.getrand(3);
 	/* conneting with each client  */
@@ -71,7 +75,7 @@ int main(int argc, char *argv[]){
     return -1;
   } //if
 
-  cout << "Waiting for connection on port " << portnum << endl;
+  //cout << "Waiting for connection on port " << portnum << endl;
   struct sockaddr_storage socket_addr;
   socklen_t socket_addr_len = sizeof(socket_addr);
   
@@ -91,7 +95,7 @@ int main(int argc, char *argv[]){
   char buffer[512];
   sprintf(buffer, "%d", i);
   send(player_fd[i],buffer,sizeof(buffer),0);
-  int totalnum=Ringmaster.getplayernum();
+  int totalnum=Ringmaster.gethopnum();
   sprintf(buffer,"%d",totalnum);
   send(player_fd[i],buffer,sizeof(buffer),0);
   //get the ready information from each player
@@ -126,14 +130,13 @@ int main(int argc, char *argv[]){
   k--;
   }
   */
-  send(player_fd[0],&Ringmaster,sizeof(&Ringmaster),0);
-  std::cout<<" Ready to start the game, sending potato to player "<< "<" << rnd << ">" <<std::endl;
-  //record the first playerid
-  Ringmaster.traceid[0]=rnd;
+  //std::cout<<Ringmaster.trace<<std::endl;
+  send(player_fd[rnd],&Ringmaster,sizeof(&Ringmaster),0);
+  std::cout<<"Ready to start the game, sending potato to player < "<< rnd << " >" <<std::endl;
   ///for selecting when the potato would come back 
   fd_set readfds;
   FD_ZERO(&readfds);
-  
+  char buffer[512];//for trace string
   while(1){
   int maxfd=player_fd[0];
   //put all the player into set
@@ -149,29 +152,37 @@ int main(int argc, char *argv[]){
     std::cout<<"select error"<<std::endl;
   }
   //run through the existing connections looking for the last time potato to read
-  Potato result(0,0);
-  for(int j=0;j<Ringmaster.getplayernum();j++){
+ 
+  int j;
+  for(j=0;j<Ringmaster.getplayernum();j++){
     //we got a message from the player
   if(FD_ISSET(player_fd[j],&readfds)){
-    recv(player_fd[j],&result,sizeof(&result),0);
-    std::cout<<result.getplayernum()<<std::endl;
-     }
+    recv(player_fd[j],&result,sizeof(result),0);
+    //std::cout<<result.gethopnum()<<std::endl;
+    std::cout<<"I have receive the potato back from the player"<<j<<std::endl;
+    break;
+    }
    }
   //get the potato and judge whether the hop number is zero close all
-  if(result.gethopnum()==0){
-      const char *message = "game over";
+  if(result.gethopnum()<=0){
+      result.setsign(true);
       for(int i = 0; i < Ringmaster.getplayernum(); i++){
-      send(player_fd[i],message, strlen(message), 0);
+      send(player_fd[i],&result,sizeof(result), 0);
       close(player_fd[i]);
     }
   }
-  //print the trace
+    break;
+  }
+  //print the trace string buffer
   std::cout<<"Trace of Potato:"<<std::endl;
-  for(int j=0;j<result.getplayernum();j++){
-      std::cout<<"<"<<result.traceid[j]<<"> ,";
-    }
- break;
-} 
+   //receive the trace
+  for (int i=0;i<totalhop-1;i++){
+    std::cout<<"< ";
+    std::cout<<result.trace[i];
+    std::cout<<" >,";
+  }
+  std::cout<<"< "<<result.trace[i]<<" >"<<std::endl;
+  //std::cout<<"< "<<result.trace[in]<<" >"<<std::endl;
   freeaddrinfo(host_info_list);
   close(socket_fd);
 }
