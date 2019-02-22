@@ -271,19 +271,6 @@ if(idnum==0){
   //std::cout<<"player"<<transfernew<<" has sending me message"<<std::endl;
  }
 
-//if the hopnum is zero, we should close the player
-if(total_hop==0){
-  freeaddrinfo(host_info_list);
-  freeaddrinfo(left_info_list);
-  freeaddrinfo(right_info_list);
-  close(socket_fd);
-  close(l_connection_fd);
-  close(r_socket_fd);
-  exit(EXIT_FAILURE);
-}
-
-
-
  //the frist receving player would send the potato all the player need to listen to three channel
     fd_set master;
     Potato start(0,0,false);
@@ -326,7 +313,7 @@ if(total_hop==0){
        // std::cout<<"receiving from the ringmaster and the sign is"<<start.getsign()<<std::endl;
         if(start.gethopnum()==0){
           //sendback to ringmaster to change the sign to true 
-            std::cout<<"I'm it"<<std::endl; 
+            std::cout<<"I am it"<<std::endl; 
             send(socket_fd,&start,sizeof(start),0);
             //std::cout<<"I have send back the potato to ringmaster"<<std::endl;
         }
@@ -363,7 +350,7 @@ if(total_hop==0){
         start.trace[index]=idnum;
         //std::cout<<"the trace is"<<start.trace[index]<<std::endl;
         if(start.gethopnum()==0){
-          std::cout<<"I'm it"<<std::endl;
+          std::cout<<"I am it"<<std::endl;
           //send back the trace string
           send(socket_fd,&start,sizeof(start),0);
          // std::cout<<"I have send back the potato to ringmaster"<<std::endl;
@@ -403,7 +390,7 @@ if(total_hop==0){
       //std::cout<<"the trace is"<<start.trace[index]<<std::endl;  
       
       if(start.gethopnum()==0){
-          std::cout<<"I'm it"<<std::endl;
+          std::cout<<"I am it"<<std::endl;
           //send back the trace string
           send(socket_fd,&start,sizeof(start),0);
           //std::cout<<"I have send back the potato to ringmaster"<<std::endl;

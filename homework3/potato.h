@@ -9,7 +9,7 @@ class Potato{
 		int playernum;
 		bool sign;
 	public:
-		int trace[512]={8};
+		int trace[513]={8};
 		//if we use char x[] we could transfer the structure together
 		Potato();
 		Potato(int a, int b,bool c):hops(a),playernum(b),sign(c){}

@@ -16,12 +16,11 @@ int main(int argc, char *argv[]){
   Potato Ringmaster(atoi(argv[3]),atoi(argv[2]),false);
   Potato result(0,0,false);
   int totalhop=Ringmaster.gethopnum();
-  int checkplayer=Ringmaster.getplayernum();
-  if(checkplayer==0){
-    std::cout<<"player number cannot be zero"<<std::endl;
+  if(totalhop==0){
+    std::cout<<"hops cannot be zero"<<std::endl;
     exit(EXIT_FAILURE);
   }
-  std::cout<<"Potato Ringmaster"<<std::endl;
+    std::cout<<"Potato Ringmaster"<<std::endl;
 	std::cout<<"Players = <"<<Ringmaster.getplayernum()<<">"<<std::endl;
 	std::cout<<"Hops = <"<<totalhop<<">"<<std::endl;
 	//std::cout<<"Portnum = <"<<portnum<<">"<<std::endl;
@@ -99,7 +98,6 @@ int main(int argc, char *argv[]){
  // const int * message = &i;
  // std::cout<<*message<<std::endl;
   // try to print the client ip 
-  /*
 char hoststr[NI_MAXHOST];
 char portstr[NI_MAXSERV];
 
@@ -111,7 +109,7 @@ if (rc == 0) {
     std::cout<<"player"<<i<<"ip is"<<hoststr<<"port number is"<<portstr<<std::endl;
   }
  
-*/
+
 
   char buffer[512];
   sprintf(buffer, "%d", i);
@@ -137,16 +135,6 @@ if (rc == 0) {
   z--;
   }
   
-  //if the hop number is zero, shut down the game
-  if(totalhop==0){
-    for(int i = 0; i < checkplayer; i++){
-      close(player_fd[i]);
-    }
-    freeaddrinfo(host_info_list);
-    exit(EXIT_FAILURE);
-  }
-
-
   //sending the potato and using select to listen to all the player
   int rnd=Ringmaster.getrand(Ringmaster.getplayernum());
   /*
